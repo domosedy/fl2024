@@ -170,12 +170,21 @@ def nfa_to_dfa(nfa: NFA) -> DFA:
 
     return dfa
 
-input_file = input()
-output_file = input()
+def work(input_file, output_file):
+    nfa = NFA()
+    nfa.read_from_file(input_file)
+    dfa = nfa_to_dfa(nfa)
 
-nfa = NFA()
-nfa.read_from_file(input_file)
-dfa = nfa_to_dfa(nfa)
+    dfa.write_to_file(output_file)
 
-dfa.write_to_file(output_file)
+    
+if __name__ == "__main__":
+    input_file = input()
+    output_file = input()
+
+    nfa = NFA()
+    nfa.read_from_file(input_file)
+    dfa = nfa_to_dfa(nfa)
+
+    dfa.write_to_file(output_file)
 
