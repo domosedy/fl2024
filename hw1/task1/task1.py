@@ -29,34 +29,39 @@ def is_accepted(word: list[int], start_nodes: list[node]) -> bool:
     return False
 
 
-input_file: str = input()
+def work(input_file: str, word: list[int]) -> bool:
+    with open(input_file, "r") as f:
+        all_lines: list[str] = f.read().split('\n')
 
-with open(input_file, "r") as f:
-    all_lines: list[str] = f.read().split('\n')
-    # print(all_lines)
-    n: int = int(all_lines[0])
-    m: int = int(all_lines[1])
+        n: int = int(all_lines[0])
+        m: int = int(all_lines[1])
 
-    start_indexes: list[int] = [int(i) for i in all_lines[2].split()]
-    term_indexes: list[int] = [int(i) for i in all_lines[3].split()]
+        start_indexes: list[int] = [int(i) for i in all_lines[2].split()]
+        term_indexes: list[int] = [int(i) for i in all_lines[3].split()]
 
-    all_nodes: list[node] = [node(i, False) for i in range(n)]
+        all_nodes: list[node] = [node(i, False) for i in range(n)]
 
-    for index in term_indexes:
-        all_nodes[index].is_term = True
+        for index in term_indexes:
+            all_nodes[index].is_term = True
 
 
-    for i in range(4, len(all_lines)):
-        # print(all_lines[i])
-        if all_lines[i] == "":
-            continue 
-        v, w, u = [int(i) for i in all_lines[i].split()]
-        if w in all_nodes[v].moves:
-            all_nodes[v].moves[w].append(all_nodes[u])
-        else:
-            all_nodes[v].moves[w] = [all_nodes[u]]
-        
-    start_nodes: list[node] = [all_nodes[i] for i in start_indexes]
+        for i in range(4, len(all_lines)):
+
+            if all_lines[i] == "":
+                continue 
+            v, w, u = [int(i) for i in all_lines[i].split()]
+            if w in all_nodes[v].moves:
+                all_nodes[v].moves[w].append(all_nodes[u])
+            else:
+                all_nodes[v].moves[w] = [all_nodes[u]]
+            
+        start_nodes: list[node] = [all_nodes[i] for i in start_indexes]
+        # print(word)
+
+        return is_accepted(word, start_nodes)
+    
+if __name__ == "__main__":
+    input_file: str = input()
     word: list[int] = [int(i) for i in input().split()]
 
-    print(is_accepted(word, start_nodes))
+    print(work(input_file, word))
