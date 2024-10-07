@@ -47,9 +47,7 @@ def parse_regular_expression(
 
         instruction_list += first_half
         instruction_list.append(
-            Instruction(
-                "jmp", len(instruction_list) + len(second_half) + (not is_recursive)
-            )
+            Instruction("jmp", len(instruction_list) + len(second_half) + 1)
         )
 
         current_index = len(instruction_list)
@@ -147,7 +145,7 @@ if __name__ == "__main__":
 
     j = 0
     for i in instruction_list:
-        print(f'Instruction("{i.command}", {i.line}),')
+        print(j, i.command, i.line)
         j += 1
 
     word = input()

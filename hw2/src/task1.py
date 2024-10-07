@@ -1,11 +1,11 @@
 from queue import Queue
 from typing import Self
 
-class Node: 
+
+class Node:
     id: int
     moves: dict[int, list[Self] | Self]
     is_term: bool
-
 
     def __init__(self, id: int, is_term: bool):
         self.id = id
@@ -13,7 +13,7 @@ class Node:
         self.moves = dict()
 
 
-class DFA: 
+class DFA:
     def __init__(self):
         self.all_nodes = list()
         self.start_node = Node(0, False)
@@ -35,7 +35,7 @@ class DFA:
 
     def read_from_file(self, input_file: str) -> None:
         with open(input_file, "r") as f:
-            all_lines: list[str] = f.read().split('\n')
+            all_lines: list[str] = f.read().split("\n")
 
             self.n: int = int(all_lines[0])
             self.m: int = int(all_lines[1])
@@ -48,20 +48,17 @@ class DFA:
             for index in term_indexes:
                 self.all_nodes[index].is_term = True
 
-
             for i in range(4, len(all_lines)):
                 v, w, u = [int(i) for i in all_lines[i].split()]
                 self.all_nodes[v].moves[w] = self.all_nodes[u]
-                
-                
+
             self.start_node = self.all_nodes[start_indexes[0]]
             self.term_nodes = [self.all_nodes[i] for i in term_indexes]
-    
 
     def __add_new_node(self) -> None:
         new_node: Node = Node(self.n, False)
         self.n += 1
-        
+
         for letter in range(self.m):
             new_node.moves[letter] = new_node
 
@@ -71,7 +68,6 @@ class DFA:
                     node.moves[letter] = new_node
 
         self.all_nodes.append(new_node)
-                    
 
     def __get_reversed_nodes(self) -> list[Node]:
         list_of_nodes: list[Node] = [Node(i, False) for i in range(self.n)]
@@ -80,15 +76,13 @@ class DFA:
             for letter in node.moves.keys():
                 id_first = node.id
                 id_second = node.moves[letter].id
-                
+
                 if letter not in list_of_nodes[id_second].moves.keys():
                     list_of_nodes[id_second].moves[letter] = []
-                    
+
                 list_of_nodes[id_second].moves[letter].append(list_of_nodes[id_first])
 
-
         return list_of_nodes
-    
 
     def __build_table(self) -> None:
         q = Queue()
@@ -98,26 +92,45 @@ class DFA:
 
         for i in range(self.n):
             for j in range(self.n):
-                if not marked[i][j] and self.all_nodes[i].is_term != self.all_nodes[j].is_term:
+                if (
+                    not marked[i][j]
+                    and self.all_nodes[i].is_term != self.all_nodes[j].is_term
+                ):
                     marked[i][j] = marked[j][i] = True
-                    q.put((i, j,))
+                    q.put(
+                        (
+                            i,
+                            j,
+                        )
+                    )
 
         while not q.empty():
             u, v = q.get()
 
             for letter in range(self.m):
-                if letter not in reversed_moves[v].moves.keys() or letter not in reversed_moves[u].moves.keys():
+                if (
+                    letter not in reversed_moves[v].moves.keys()
+                    or letter not in reversed_moves[u].moves.keys()
+                ):
                     continue
                 for prev_v in reversed_moves[v].moves[letter]:
                     for prev_u in reversed_moves[u].moves[letter]:
                         if not marked[prev_u.id][prev_v.id]:
-                            marked[prev_u.id][prev_v.id] = marked[prev_v.id][prev_u.id] = True
-                            q.put((prev_u.id, prev_v.id,))
-        
-        return marked
-    
+                            marked[prev_u.id][prev_v.id] = marked[prev_v.id][
+                                prev_u.id
+                            ] = True
+                            q.put(
+                                (
+                                    prev_u.id,
+                                    prev_v.id,
+                                )
+                            )
 
-    def __build_from_components(self, components: list[int], components_count: int) -> Self:
+        return marked
+
+    def __build_from_components(
+        self, components: list[int], components_count: int
+    ) -> Self:
         list_of_all_nodes = [Node(i, False) for i in range(components_count)]
         start_node = list_of_all_nodes[0]
         term_nodes = []
@@ -128,14 +141,16 @@ class DFA:
 
             current_node = self.all_nodes[i]
             for letter, node in current_node.moves.items():
-                list_of_all_nodes[components[i]].moves[letter] = list_of_all_nodes[components[node.id]]
+                list_of_all_nodes[components[i]].moves[letter] = list_of_all_nodes[
+                    components[node.id]
+                ]
 
             if current_node == self.start_node:
                 start_node = list_of_all_nodes[components[i]]
-            
+
             if current_node.is_term:
                 list_of_all_nodes[components[i]].is_term = True
-        
+
         for node in list_of_all_nodes:
             if node.is_term:
                 term_nodes.append(node)
@@ -148,15 +163,12 @@ class DFA:
         dfa.m = self.m
 
         return dfa
-                
 
-    
     def __get_reachable(self, v: Node, used: list[bool]) -> None:
         used[v.id] = True
         for node in v.moves.values():
             if not used[node.id]:
                 self.__get_reachable(node, used)
-
 
     def minimize(self) -> Self:
         reachable = [False for i in range(self.n)]
@@ -164,7 +176,6 @@ class DFA:
         components = [-1 for i in range(self.n)]
 
         self.__get_reachable(self.start_node, reachable)
-
 
         components_count = 0
         for i in range(self.n):
@@ -183,9 +194,13 @@ class DFA:
         self_dfa = self.minimize()
         other_dfa = other
 
-        if self_dfa.n != other_dfa.n or self_dfa.m != other_dfa.m or len(self_dfa.term_nodes) != len(other_dfa.term_nodes):
+        if (
+            self_dfa.n != other_dfa.n
+            or self_dfa.m != other_dfa.m
+            or len(self_dfa.term_nodes) != len(other_dfa.term_nodes)
+        ):
             return False
-        
+
         isomporhic_indexes = [-1] * self_dfa.n
 
         self_q = Queue()
@@ -202,12 +217,15 @@ class DFA:
 
             if u.moves.keys() != v.moves.keys():
                 return False
-            
+
             for letter in u.moves.keys():
                 new_u = u.moves[letter]
                 new_v = v.moves[letter]
 
-                prev_index, isomporhic_indexes[new_v.id] = isomporhic_indexes[new_v.id], new_u.id
+                prev_index, isomporhic_indexes[new_v.id] = (
+                    isomporhic_indexes[new_v.id],
+                    new_u.id,
+                )
 
                 if prev_index != -1 and prev_index != new_u.id:
                     return False
@@ -216,10 +234,10 @@ class DFA:
 
                 self_q.put(new_u)
                 other_q.put(new_v)
-        
+
         if self_q.empty() != other_q.empty():
             return False
-        
+
         for i in range(self_dfa.n):
             state_from_other = other_dfa.all_nodes[i]
             state_from_self = self_dfa.all_nodes[isomporhic_indexes[i]]
@@ -231,7 +249,7 @@ class DFA:
                 if isomporhic_indexes[new_state_other.id] != new_state_self.id:
                     return False
 
-        return True    
+        return True
 
     def accepts(self, s: str) -> bool:
         old_states: set[Node] = set(self.start_node)
@@ -246,7 +264,8 @@ class DFA:
             old_states, new_states = new_states, old_states
 
         return any(lambda x: x.is_term, old_states)
-    
+
+
 if __name__ == "__main__":
     input_file = "test/test1/input1.txt"
     output_file = "out.txt"
@@ -257,4 +276,3 @@ if __name__ == "__main__":
     new_dfa = dfa.minimize()
 
     new_dfa.write_to_file(output_file)
-
